@@ -29,11 +29,9 @@ def get_records(request):
 
 def get_distribution_gender(request):
     try:
-        male_count = User.objects.filter(gender__contains="Male").count()
-        female_count = User.objects.filter(gender__contains="Female").count()
-
+        male_count = User.objects.filter(gender__contains="1").count()
+        female_count = User.objects.filter(gender__contains="2").count()
         total = male_count + female_count
-
         data = {}
         data['male'] = round(male_count*100/total)
         data['female'] = round(female_count * 100 / total)

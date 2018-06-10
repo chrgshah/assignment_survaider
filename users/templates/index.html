@@ -26,8 +26,8 @@
         <div class="col-md-4">
             <select class="form-control" ng-model="filter.gender">
             <option value="">Search by sex</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
+            <option value="1">Male</option>
+            <option value="2">Female</option>
         </select>
         </div>
         <div class="col-md-4">
@@ -51,7 +51,9 @@
                     <td>{[{records.relationship}]}</td>
                     <td>{[{records.profession}]}</td>
                     <td>{[{records.race}]}</td>
-                    <td>{[{records.gender}]}</td>
+                    <td><span ng-if="records.gender =='1'">Male</span>
+                        <span ng-if="records.gender =='2'">Female</span>
+                    </td>
                     <td>{[{records.country}]}</td>
                 </tr>
         </table>
