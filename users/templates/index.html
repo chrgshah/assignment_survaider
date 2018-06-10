@@ -1,0 +1,218 @@
+    {% load staticfiles %}
+    <html>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="{% static 'users/css/bootstrap.min.css' %}">
+        <script src="{% static 'users/js/jquery.min.js' %}"></script>
+        <script src="{% static 'users/js/bootstrap.min.js' %}"></script>
+        <script src="{% static 'users/js/angular.js' %}"></script>
+        <script src="{% static 'users/js/dirPagination.js' %}"></script>
+        <script type="text/javascript" src="{% static 'users/js/loader.js' %}"></script>
+    </head>
+    <body>
+    <div class="container" ng-app="users" ng-controller="user_controller">
+        <div class="col-md-6">
+            <div id="piechart" style="width: 100%; height: 500px;"></div>
+        </div>
+        <div class="col-md-6">
+            <div id="piechart1" style="width: 100%; height: 500px;"></div>
+        </div>
+
+        <div class="row" style="margin-bottom: 10px;">
+            <div class="col-md-4">
+            <input type="text" class="form-control" ng-model="filter.race" placeholder="Search by race">
+        </div>
+        <div class="col-md-4">
+            <select class="form-control" ng-model="filter.gender">
+            <option value="">Search by sex</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+        </select>
+        </div>
+        <div class="col-md-4">
+            <input class="form-control" type="text" ng-model="filter.relationship" placeholder="Search by relationship">
+        </div>
+        </div>
+
+        <table class="table table-bordered table-striped">
+                <tr>
+                    <th>Employment Type</th>
+                    <th>Degree</th>
+                    <th>Relationship</th>
+                    <th>Profession</th>
+                    <th>Race</th>
+                    <th>Gender</th>
+                    <th>Country</th>
+                </tr>
+                <tr pagination-id="users-ref-and-stuff" dir-paginate="records in get_records_list | filter:filter | itemsPerPage:tblCount">
+                    <td>{[{records.employment_type}]}</td>
+                    <td>{[{records.degree}]}</td>
+                    <td>{[{records.relationship}]}</td>
+                    <td>{[{records.profession}]}</td>
+                    <td>{[{records.race}]}</td>
+                    <td>{[{records.gender}]}</td>
+                    <td>{[{records.country}]}</td>
+                </tr>
+        </table>
+        <dir-pagination-controls style="    min-width: 1em;
+    text-align: center;" pagination-id="users-ref-and-stuff"
+                                             max-size="5"
+                                             direction-links="true"
+                                             boundary-links="true" >
+                    </dir-pagination-controls>
+    </div >
+    </body>
+    <script>
+         var app = angular.module('users', ["angularUtils.directives.dirPagination"]);
+
+              app.controller('user_controller', function ($scope, $http, $filter, transformRequestAsFormPost) {
+                $scope.tblCount =10;
+
+                $scope.get_records=function()
+                {
+                    $http({
+                        method: 'GET',
+                        url: '{% url 'get_records' %}',
+                        transformRequest: transformRequestAsFormPost,
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    }).then(function (response) {
+                        if(response.data.status == true){
+                            $scope.get_records_list = response.data.result;
+                        }else{
+
+                        }
+                    });
+
+                }
+
+                $scope.get_distribution_gender=function()
+                {
+                    $http({
+                        method: 'GET',
+                        url: '{% url 'get_distribution_gender' %}',
+                        transformRequest: transformRequestAsFormPost,
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    }).then(function (response) {
+                        if(response.data.status == true){
+                            $scope.gender_data = response.data.data;
+                            $scope.generate_gender_graph();
+                        }else{
+
+                        }
+                    });
+
+                }
+
+                $scope.get_distribution_relationship=function()
+                {
+                    $http({
+                        method: 'GET',
+                        url: '{% url 'get_distribution_relationship' %}',
+                        transformRequest: transformRequestAsFormPost,
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    }).then(function (response) {
+                        if(response.data.status == true){
+                            $scope.distribution_data = response.data.data;
+                            $scope.generate_distribution_graph();
+                        }else{
+
+                        }
+                    });
+
+                }
+
+                 $scope.get_records();
+                 $scope.get_distribution_gender();
+                 $scope.get_distribution_relationship();
+
+                google.charts.load('current', {'packages':['corechart']});
+
+                $scope.generate_distribution_graph = function(){
+                    google.charts.setOnLoadCallback($scope.drawDistributionChart);
+                }
+
+                $scope.generate_gender_graph = function(){
+                    google.charts.setOnLoadCallback($scope.drawChart);
+                }
+
+                $scope.drawDistributionChart =function() {
+                    var data = google.visualization.arrayToDataTable([
+                        ['Sex', 'Distribution'],
+                        ['Divorced',$scope.distribution_data.Divorced],
+                        ['Married AF spouse',$scope.distribution_data.Married_AF_spouse],
+                        ['Married civ spouse',$scope.distribution_data.Married_civ_spouse],
+                        ['Married spouse absent',$scope.distribution_data.Married_spouse_absent],
+                        ['Never married',$scope.distribution_data.Never_married],
+                        ['Separated',$scope.distribution_data.Separated]
+                    ]);
+
+                    var options = {
+                      title: 'Number of people in each relationship status'
+                    };
+
+                    var chart = new google.visualization.PieChart(document.getElementById('piechart1'));
+
+                    chart.draw(data, options);
+                  }
+
+                  $scope.drawChart =function() {
+                    var data = google.visualization.arrayToDataTable([
+                      ['Sex', 'Distribution'],
+                      ['Male',     $scope.gender_data.male],
+                      ['Female',      $scope.gender_data.female]
+                    ]);
+
+                    var options = {
+                      title: 'Distribution of number of males and females'
+                    };
+
+                    var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+
+                    chart.draw(data, options);
+                  }
+              });
+        app.factory(
+                      "transformRequestAsFormPost",
+                      function () {
+                          // I prepare the request data for the form post.
+                          function transformRequest(data, getHeaders) {
+                              var headers = getHeaders();
+                              headers[ "Content-type" ] = "application/x-www-form-urlencoded; charset=utf-8";
+                              return(serializeData(data));
+                          }
+                          return(transformRequest);
+                          function serializeData(data) {
+                              if (!angular.isObject(data)) {
+                                  return((data == null) ? "" : data.toString());
+                              }
+                              var buffer = [];
+                              for (var name in data) {
+                                  if (!data.hasOwnProperty(name)) {
+                                      continue;
+                                  }
+                                  var value = data[ name ];
+                                  buffer.push(
+                                          encodeURIComponent(name) +
+                                          "=" +
+                                          encodeURIComponent((value == null) ? "" : value)
+                                  );
+                              }
+                              var source = buffer
+                                              .join("&")
+                                              .replace(/%20/g, "+")
+                                      ;
+                              return(source);
+                          }
+                      }
+              );
+              app.config(function ($interpolateProvider) {
+                  $interpolateProvider.startSymbol('{[{');
+                  $interpolateProvider.endSymbol('}]}');
+              });
+              app.config(['$httpProvider', function ($httpProvider) {
+                  $httpProvider.defaults.xsrfCookieName = 'csrftoken';
+                  $httpProvider.defaults.xsrfHeaderName = 'X-CSRFToken';
+              }]);
+    </script>
+    </html>
