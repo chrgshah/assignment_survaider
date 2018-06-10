@@ -6,3 +6,4 @@ Step 3: Go to the project, open terminal and type command : source env_project/b
 Step 4: Type : pip install -r requirements.txt (To install all the dependencies)
 Step 5: Type : python manage.py makemigrations
 Step 6: Type : python manage.py migrate
+Step 7: Import users.sql in the database
